@@ -2,21 +2,16 @@ package com.techdynobd.hdwalpaper;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.SearchManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -37,37 +32,34 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity {
 
     RecyclerView recyclerView;
     WallpaperAdapter wallpaperAdapter;
     List<WallpaperModel> wallpaperModels = new ArrayList<>();
 
-    ProgressBar progressBar;
     int pageNumber = 1;
 
     Boolean isScrolling = false;
     int currentItems,totalItems,scrollOutItems;
 
+    ProgressBar progressBar;
+    String query;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_search);
+        query = getIntent().getStringExtra("query");
+        getSupportActionBar().setTitle(query);
 
-        fetchWallpaper();
+        //Add back button------------------
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        //Active Search Interface----------
-        Intent intent = getIntent();
-        if (Intent.ACTION_SEARCH.equals(intent.getAction()))
-        {
-            String query = intent.getStringExtra(SearchManager.QUERY);
-            Intent searchActivity = new Intent(MainActivity.this,SearchActivity.class);
-            searchActivity.putExtra("query",query);
-            startActivity(searchActivity);
-        }
+        fetchWallpaper(query);
 
         wallpaperAdapter = new WallpaperAdapter(this,wallpaperModels);
-        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView = findViewById(R.id.searchRecyclerView);
         recyclerView.setHasFixedSize(true);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this,2);
         recyclerView.setLayoutManager(gridLayoutManager);
@@ -96,32 +88,15 @@ public class MainActivity extends AppCompatActivity {
                 if (isScrolling && (currentItems+scrollOutItems == totalItems))
                 {
                     isScrolling = false;
-                    fetchWallpaper();
+                    fetchWallpaper(query);
                 }
             }
         });
-
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        getMenuInflater().inflate(R.menu.main_menu,menu);
-        //Search Action.............
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        MenuItem menuItem = menu.findItem(R.id.search);
-        SearchView searchView = (SearchView) menuItem.getActionView();
-
-        searchView.setSearchableInfo(
-                searchManager.getSearchableInfo(getComponentName())
-        );
-        searchView.setSubmitButtonEnabled(true);
-        return true;
-    }
-
-    private void fetchWallpaper()
+    private void fetchWallpaper(String query)
     {
-        StringRequest request = new StringRequest(Request.Method.GET, "https://api.pexels.com/v1/curated/?/page="+pageNumber+"&per_page=80",
+        StringRequest request = new StringRequest(Request.Method.GET, "https://api.pexels.com/v1/search/?page="+pageNumber+"&per_page=80&query="+query,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -172,5 +147,17 @@ public class MainActivity extends AppCompatActivity {
 
         RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
         requestQueue.add(request);
+    }
+
+    //Enable Back Button---------------
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        if (item.getItemId() == android.R.id.home)
+        {
+            startActivity(new Intent(SearchActivity.this,MainActivity.class));
+//            onBackPressed();
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
