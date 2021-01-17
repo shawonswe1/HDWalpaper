@@ -14,6 +14,11 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 
 import java.io.IOException;
 
@@ -23,6 +28,7 @@ public class FullScreenWallpaper extends AppCompatActivity {
     PhotoView photoView;
     Button setWallpaper;
 
+    AdView mAdView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,6 +41,18 @@ public class FullScreenWallpaper extends AppCompatActivity {
 
         photoView = findViewById(R.id.photoView);
         Glide.with(getApplicationContext()).load(originalUrl).into(photoView);
+
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
+
+        mAdView = findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+
+
 
         setWallpaper = findViewById(R.id.setWallpaper);
         setWallpaper.setOnClickListener(new View.OnClickListener() {
